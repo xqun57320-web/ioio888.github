@@ -165,21 +165,21 @@ document.getElementById('go').onclick=()=>{Au.start();reset();ov.style.display='
 function esc(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 const LB={loc:[],gl:null,db:null,uid:null,
  load(){try{this.loc=JSON.parse(localStorage.getItem('rk')||'[]');document.getElementById('nm').value=localStorage.getItem('pn')||'';}catch(x){}this.show();},
- show(){const L=this.gl||this.loc;document.getElementById('lb').innerHTML='<div><b>'+(this.gl?'共享排行榜':'本機排行榜')+'</b></div>'+(L.length?L.slice(0,8).map((r,i)=>'<div><span>'+(i+1)+'. '+esc(r.name)+'</span><span>'+r.score+' · 第'+r.stage+'關</span></div>').join(''):'<div>還沒有紀錄</div>');},
+ show(){const L=this.gl||this.loc;document.getElementById('lb').innerHTML='<div><b>'+(this.gl?'共享排行榜':'本機排行榜')+'</b></div>'+(L.length?L.slice(0,8).map((r,i)=>'<div><span>'+(i+1)+'. '+esc(r.name)+'</span><span>'+r.score+' · 第'+r.stage+'關</span></div>').join(''):'<div>還沒有紀錄</div>')+(this.st?'<div style="opacity:.7;font-size:12px">'+esc(this.st)+'</div>':'');},
  async submit(score,stage){const name=(document.getElementById('nm').value.trim()||'玩家').slice(0,8);try{localStorage.setItem('pn',name);}catch(x){}
   this.loc.push({name,score,stage});this.loc.sort((a,b)=>b.score-a.score);this.loc=this.loc.slice(0,10);try{localStorage.setItem('rk',JSON.stringify(this.loc));}catch(x){}this.show();
-  if(this.db&&this.uid){try{const ref=this.db.collection('scores').doc(this.uid),o=await ref.get();if(!o.exists||o.data().score<score)await ref.set({name,score,stage,ts:Date.now()});}catch(x){}}},
- async init(){try{const [db,u]=await Promise.all([claude.use('db'),claude.use('user')]);if(!db||!u)return;this.db=db;this.uid=await u.id();db.collection('scores').orderBy('score','desc').limit(10).onSnapshot(s=>{this.gl=s.docs.map(d=>d.data());this.show();},()=>{});}catch(x){}}};
+  if(this.db&&this.uid){try{const ref=this.db.collection('scores').doc(this.uid),o=await ref.get();if(!o.exists||o.data().score<score)await ref.set({name,score,stage,ts:Date.now()});}catch(x){this.st='上傳失敗：'+(x.message||x.code||x);this.show();}}},
+ async init(){try{const [db,u]=await Promise.all([claude.use('db'),claude.use('user')]);if(!db||!u){this.st='共享榜未啟用（請確認已登入且有互動權限）';this.show();return;}this.db=db;this.uid=await u.id();if(!this.uid){this.st='未登入，成績只存在本機';this.show();}db.collection('scores').orderBy('score','desc').limit(10).onSnapshot(s=>{this.gl=s.docs.map(d=>d.data());this.show();},e=>{this.st='讀取失敗：'+(e.message||e.code);this.show();});}catch(x){this.st='共享榜錯誤：'+(x.message||x);this.show();}}};
 LB.load();
 if(window.claude)LB.init();
 else if(FB_URL){
  const base=FB_URL.replace(/\/$/,'');
  let u=''; try{u=localStorage.getItem('uid')||'';if(!u){u=Math.random().toString(36).slice(2,12);localStorage.setItem('uid',u);}}catch(x){u=Math.random().toString(36).slice(2,12);}
  LB.uid=u;
- LB.pull=async()=>{try{const r=await (await fetch(base+'/scores.json?orderBy="score"&limitToLast=10')).json();LB.gl=Object.values(r||{}).map(v=>({name:String(v.name||'').slice(0,8),score:+v.score||0,stage:+v.stage||1})).sort((a,b)=>b.score-a.score);LB.show();}catch(x){}};
+ LB.pull=async()=>{try{const r=await (await fetch(base+'/scores.json?orderBy="score"&limitToLast=10')).json();if(r&&r.error)throw new Error(r.error);LB.gl=Object.values(r||{}).map(v=>({name:String(v.name||'').slice(0,8),score:+v.score||0,stage:+v.stage||1})).sort((a,b)=>b.score-a.score);LB.show();}catch(x){LB.st='連線失敗：'+(x.message||x);LB.show();}};
  LB.db={collection:()=>({doc:id=>({
   get:async()=>{const r=await (await fetch(base+'/scores/'+id+'.json')).json();return{exists:!!r,data:()=>r};},
-  set:async d=>{await fetch(base+'/scores/'+id+'.json',{method:'PUT',body:JSON.stringify(d)});LB.pull();}})})};
+  set:async d=>{const w=await fetch(base+'/scores/'+id+'.json',{method:'PUT',body:JSON.stringify(d)});if(!w.ok)throw new Error('寫入被拒絕 '+w.status);LB.pull();}})})};
  LB.pull();setInterval(LB.pull,30000);
 }
 document.getElementById('sk').onclick=skill;
