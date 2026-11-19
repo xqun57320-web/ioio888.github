@@ -14,7 +14,8 @@ canvas{height:100%;max-width:100%;aspect-ratio:2/3;background:#0d1b3a;display:bl
 #ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(5,10,25,.8);text-align:center;gap:10px}
 #sk{display:none;position:fixed;right:10px;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:5;width:46px;height:46px;border:2px solid #ffe14a;border-radius:23px;background:rgba(20,30,60,.75);font-size:22px;padding:0;line-height:1;box-shadow:0 0 10px #ffe14a}
 #mu{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:5;width:40px;height:40px;border:0;border-radius:20px;background:rgba(255,255,255,.15);color:var(--fg);font-size:18px}
-#ov button#mf,#ov button#shop{background:transparent;color:var(--fg);border:1px solid var(--fg);font-size:15px;font-weight:400;padding:10px 24px}
+#shp input{padding:8px 12px;border-radius:8px;border:1px solid #567;background:rgba(255,255,255,.1);color:var(--fg);font-size:15px;width:220px;text-align:center}
+#ov button#mf,#ov button#shop,#ov button#acc{background:transparent;color:var(--fg);border:1px solid var(--fg);font-size:14px;font-weight:400;padding:7px 20px}
 #nm{padding:8px 12px;border-radius:8px;border:1px solid #567;background:rgba(255,255,255,.1);color:var(--fg);text-align:center;font-size:15px;width:160px}
 #lb{font-size:13px;line-height:1.6;min-width:240px}#lb div{display:flex;justify-content:space-between;gap:16px}#lb b{color:var(--acc)}
 #shp{display:none;position:fixed;inset:0;z-index:8;background:rgba(5,10,25,.96);flex-direction:column;align-items:center;justify-content:safe center;padding:12px 0;gap:6px;overflow:auto}#shp h2{color:var(--acc);margin:0}.sr{display:flex;align-items:center;gap:10px;width:min(340px,90%);justify-content:space-between;font-size:15px}.sw{display:flex;gap:2px}.sw i{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid #fff4}#shp button{padding:6px 12px;border:0;border-radius:6px;background:var(--acc);color:#1a1000;font-weight:700;font-size:13px}#shx{margin-top:8px;padding:8px 24px!important}
@@ -26,8 +27,9 @@ canvas{height:100%;max-width:100%;aspect-ratio:2/3;background:#0d1b3a;display:bl
 <body>
 <div id="wrap"><canvas id="c" width="400" height="600"></canvas></div>
 <div id="shp"></div><button id="sk">💣</button><button id="mu">♪</button>
-<div id="ov"><h1>雷霆戰機</h1><p id="msg">手指拖曳移動,自動射擊<br>電腦:方向鍵或 WASD 移動<br>吃 P 升級火力,擊敗每 10 關的魔王</p><input id="nm" maxlength="8" placeholder="輸入你的名字"><div id="lb"></div><button id="go">開始遊戲</button><button id="mf">選擇音樂（循環播放）</button><button id="shop">造型商店</button><input type="file" id="fi" accept="audio/*,video/mp4,.mp3,.m4a,.mp4" hidden></div>
+<div id="ov"><h1>雷霆戰機</h1><p id="msg">手指拖曳移動,自動射擊<br>電腦:方向鍵或 WASD 移動<br>吃 P 升級火力,擊敗每 10 關的魔王</p><input id="nm" maxlength="8" placeholder="輸入你的名字"><div id="lb"></div><button id="go">開始遊戲</button><button id="mf">選擇音樂（循環播放）</button><button id="shop">造型商店</button><button id="acc" style="display:none">登入／註冊（雲端存檔）</button><input type="file" id="fi" accept="audio/*,video/mp4,.mp3,.m4a,.mp4" hidden></div>
 <script>const FB_URL='https://win0-29939-default-rtdb.asia-southeast1.firebasedatabase.app/'; // 把你的 Firebase Realtime Database 網址貼在這裡，例如 https://xxxx-default-rtdb.firebaseio.comm
+const FB_KEY=''; // 開啟帳號登入：把 Firebase 專案設定裡的「網路 API 金鑰」貼在這裡
 const cv=document.getElementById('c'),W=400,H=600;let g=cv.getContext('2d');
 const ov=document.getElementById('ov'),msg=document.getElementById('msg');
 let S,keys={},touch=null,last=0;
@@ -95,13 +97,13 @@ function update(){
  S.b.forEach(b=>{
   S.e.forEach(e=>{if(!b.d&&e.hp>0&&hit(b,e,e.type==2?20:14)){b.d=b.L?0:1;e.hp-=(b.M?2:b.L?.4:1)*.5;S.en=Math.min(100,S.en+(S.wp==1?.06:.2));Au.hit();
    if(e.hp<=0){S.score+=e.sc;addCoin(1);Au.boom();boom(e.x,e.y,14,'#ffb020');if(Math.random()<(e.type==2?1:.12))S.it.push({x:e.x,y:e.y,k:Math.random()*3|0});}}});
-  if(B&&!b.d&&hit(b,B,40)){b.d=b.L?0:1;B.hp-=(b.M?2:b.L?.4:1)*.5;S.en=Math.min(100,S.en+(S.wp==1?.06:.2));Au.hit();if(B.hp<=0){S.score+=B.sc;addCoin(10);Au.big();boom(B.x,B.y,60,'#ff5050');S.boss=null;if(S.stage==4){S.p.hp+=2;S.lm=150;}if(S.stage>=5)win();else S.stage++;S.wt=0;S.wv=-1;S.eb=[];S.cl=[];S.lt=[];S.tr=[];S.bt=0;
+  if(B&&S.boss===B&&!b.d&&hit(b,B,40)){b.d=b.L?0:1;B.hp-=(b.M?2:b.L?.4:1)*.5;S.en=Math.min(100,S.en+(S.wp==1?.06:.2));Au.hit();if(B.hp<=0){S.score+=B.sc;addCoin(10);Au.big();boom(B.x,B.y,60,'#ff5050');S.boss=null;if(S.stage==4){S.p.hp+=2;S.lm=150;}if(S.stage>=5)win();else S.stage++;S.wt=0;S.wv=-1;S.eb=[];S.cl=[];S.lt=[];S.tr=[];S.bt=0;
    S.it.push({x:B.x,y:B.y,k:Math.random()*3|0});}}});
  S.b.forEach(b=>S.cl.forEach(c=>{if(!b.d&&c.hp>0&&hit(b,c,40)){b.d=b.L?0:1;c.hp-=(b.M?2:b.L?.4:1)*.5;Au.hit();if(c.hp<=0){boom(c.x,c.y,40,'#ff9a3a');Au.big();}}}));S.cl=S.cl.filter(c=>c.hp>0);
  S.b=S.b.filter(b=>!b.d);S.e=S.e.filter(e=>e.hp>0);
  S.it=S.it.filter(i=>{if(hit(i,p,20)){if(i.k===S.wp)p.pow=Math.min(8,p.pow+1);else S.wp=i.k;S.score+=50;Au.pw();return false;}return true;});
  if(p.inv<=0){
-  let dead=S.e.some(e=>e.type==4&&e.vy==0&&e.c<480&&e.c%160>=70&&e.c%160<100&&Math.abs(p.x-e.x)<9&&p.y>e.y)||S.tr.some(t=>{if(t.t<=60)return false;const dx=Math.cos(t.a),dy=Math.sin(t.a),px=p.x-t.x,py=p.y-t.y;return px*dx+py*dy>0&&Math.abs(px*dy-py*dx)<9;})||S.lt.some(l=>l.t>=180&&l.t<192&&Math.hypot(l.x-p.x,l.y-p.y)<30)||S.eb.some(b=>hit(b,p,8))||S.e.some(e=>hit(e,p,16))||(B&&hit(B,p,36));
+  let dead=S.e.some(e=>e.type==4&&e.vy==0&&e.c<480&&e.c%160>=70&&e.c%160<100&&Math.abs(p.x-e.x)<9&&p.y>e.y)||S.tr.some(t=>{if(t.t<=60)return false;const dx=Math.cos(t.a),dy=Math.sin(t.a),px=p.x-t.x,py=p.y-t.y;return px*dx+py*dy>0&&Math.abs(px*dy-py*dx)<9;})||S.lt.some(l=>l.t>=180&&l.t<192&&Math.hypot(l.x-p.x,l.y-p.y)<30)||S.eb.some(b=>hit(b,p,8))||S.e.some(e=>hit(e,p,16))||(B&&S.boss===B&&hit(B,p,36));
   if(dead){p.hp--;Au.hurt();p.inv=120;p.pow=Math.max(1,p.pow-1);S.eb=[];boom(p.x,p.y,24,'#6cf');
    if(p.hp<=0){S.alive=false;LB.submit(S.score,S.stage);ov.style.display='flex';document.querySelector('#ov h1').textContent='遊戲結束';
     msg.innerHTML='得分 '+S.score+'<br>闖到第 '+S.stage+' 關';document.getElementById('go').textContent='再玩一次';}}}
@@ -129,9 +131,10 @@ const Au={c:null,m:null,on:true,step:0,next:0,lh:0,
   if(s%2==1)this.noise(t,.03,.05,9000);}
 };
 const SKINS=[{n:'經典白藍',c:['#f6f8ff','#3c78e0','#ee4040','#6fe8ff']},{n:'烈焰紅',c:['#ff6a4a','#8a2418','#ffd24a','#ffee66']},{n:'森林綠',c:['#7ee08a','#2a6a3a','#f2e05a','#b8ff9a']},{n:'暗夜黑金',c:['#3a3a4a','#15151f','#ffc23a','#ffd96a']},{n:'櫻花粉（附翅臂）',c:['#ffc2dc','#d4609a','#ffffff','#ff9ad0']},{n:'黃金傳說（附翅臂）',c:['#ffe27a','#c08a1a','#ff5a3a','#fff7c0']}];
+const CL={on:false,uid:'',email:'',tok:'',rt:'',exp:0,t:0,st:''};
 let SK=0,coins=0,own=[0];
 try{SK=+localStorage.getItem('sk')||0;coins=+localStorage.getItem('coin')||0;own=JSON.parse(localStorage.getItem('own')||'[0]');}catch(x){}
-function sv(){try{localStorage.setItem('sk',SK);localStorage.setItem('coin',coins);localStorage.setItem('own',JSON.stringify(own));}catch(x){}}
+function sv(){try{localStorage.setItem('sk',SK);localStorage.setItem('coin',coins);localStorage.setItem('own',JSON.stringify(own));}catch(x){}if(CL.on&&CL.uid&&CL.q)CL.q();}
 function addCoin(n){coins+=n;sv();}
 const LF=b=>Math.ceil(b.hp/(b.max/b.bars)-1e-9);
 function win(){if(!S.alive)return;S.alive=false;S.score+=5000;addCoin(50);LB.submit(S.score,5);ov.style.display='flex';document.querySelector('#ov h1').textContent='通關!';msg.innerHTML='全部 5 關完成<br>得分 '+S.score+'（含通關獎勵 5000，金幣 +50）';document.getElementById('go').textContent='再玩一次';}
@@ -220,26 +223,43 @@ const LB={loc:[],gl:null,db:null,uid:null,
  show(){const L=this.gl||this.loc;document.getElementById('lb').innerHTML='<div><b>'+(this.gl?'共享排行榜':'本機排行榜')+'</b></div>'+(L.length?L.slice(0,5).map((r,i)=>'<div><span>'+(i+1)+'. '+esc(r.name)+'</span><span>'+r.score+' · 第'+r.stage+'關</span></div>').join(''):'<div>還沒有紀錄</div>')+(this.st?'<div style="opacity:.7;font-size:12px">'+esc(this.st)+'</div>':'');},
  async submit(score,stage){const name=(document.getElementById('nm').value.trim()||'玩家').slice(0,8);try{localStorage.setItem('pn',name);}catch(x){}
   this.loc.push({name,score,stage});this.loc.sort((a,b)=>b.score-a.score);this.loc=this.loc.slice(0,10);try{localStorage.setItem('rk',JSON.stringify(this.loc));}catch(x){}this.show();
+  if(this.db&&!this.uid&&CL.on){this.st='登入帳號才能上傳到共享排行榜';this.show();}
   if(this.db&&this.uid){try{const ref=this.db.collection('scores').doc(this.uid),o=await ref.get();if(!o.exists||o.data().score<score)await ref.set({name,score,stage,ts:Date.now()});}catch(x){this.st='上傳失敗：'+(x.message||x.code||x);this.show();}}},
  async init(){try{const [db,u]=await Promise.all([claude.use('db'),claude.use('user')]);if(!db||!u){this.st='共享榜未啟用（請確認已登入且有互動權限）';this.show();return;}this.db=db;this.uid=await u.id();if(!this.uid){this.st='未登入，成績只存在本機';this.show();}db.collection('scores').orderBy('score','desc').limit(10).onSnapshot(s=>{this.gl=s.docs.map(d=>d.data());this.show();},e=>{this.st='讀取失敗：'+(e.message||e.code);this.show();});}catch(x){this.st='共享榜錯誤：'+(x.message||x);this.show();}}};
 LB.load();
 if(window.claude)LB.init();
 else if(FB_URL){
- const base=FB_URL.replace(/\/$/,'');
+ const base=FB_URL.replace(/\/$/,''),K=(typeof FB_KEY!=='undefined'&&FB_KEY)||'';
  let u=''; try{u=localStorage.getItem('uid')||'';if(!u){u=Math.random().toString(36).slice(2,12);localStorage.setItem('uid',u);}}catch(x){u=Math.random().toString(36).slice(2,12);}
- LB.uid=u;
- LB.pull=async()=>{try{const r=await (await fetch(base+'/scores.json?orderBy="score"&limitToLast=10')).json();if(r&&r.error)throw new Error(r.error);LB.gl=Object.values(r||{}).map(v=>({name:String(v.name||'').slice(0,8),score:+v.score||0,stage:+v.stage||1})).sort((a,b)=>b.score-a.score);LB.show();}catch(x){LB.st='連線失敗：'+(x.message||x);LB.show();}};
+ LB.uid=K?'':u;CL.on=!!K;
+ LB.pull=async()=>{try{const r=await (await fetch(base+'/scores.json?orderBy="score"&limitToLast=10')).json();if(r&&r.error)throw new Error(r.error);LB.gl=Object.values(r||{}).map(v=>({name:String(v.name||'').slice(0,8),score:+v.score||0,stage:+v.stage||1})).sort((a,b)=>b.score-a.score);LB.st='';LB.show();}catch(x){LB.st='連線失敗：'+(x.message||x);LB.show();}};
+ const api=(p,b)=>fetch('https://identitytoolkit.googleapis.com/v1/accounts:'+p+'?key='+K,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).then(r=>r.json());
+ const setS=d=>{CL.uid=d.localId||d.user_id||'';CL.email=d.email||CL.email;CL.tok=d.idToken||d.id_token||'';CL.rt=d.refreshToken||d.refresh_token||'';CL.exp=Date.now()+(+(d.expiresIn||d.expires_in||3600))*1000;try{localStorage.setItem('fbs',JSON.stringify({uid:CL.uid,email:CL.email,rt:CL.rt}));}catch(x){}LB.uid=CL.uid;};
+ CL.out=()=>{CL.uid='';CL.tok='';CL.rt='';CL.email='';CL.st='';LB.uid='';try{localStorage.removeItem('fbs');}catch(x){}accRender();};
+ CL.fresh=async()=>{if(!CL.rt)return '';if(Date.now()>CL.exp-60000){const r=await (await fetch('https://securetoken.googleapis.com/v1/token?key='+K,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(CL.rt)})).json();if(!r.id_token){CL.out();return '';}setS(r);}return CL.tok;};
+ CL.load=async()=>{try{const t=await CL.fresh();if(!t)return;const r=await (await fetch(base+'/users/'+CL.uid+'.json?auth='+t)).json();if(r&&!r.error){coins=Math.max(coins,+r.coins||0);Object.values(r.own||[]).forEach(i=>{if(!own.includes(+i))own.push(+i);});if(own.includes(+r.sk))SK=+r.sk;}sv();CL.st='已同步雲端存檔';}catch(x){CL.st='同步失敗：'+(x.message||x);}accRender();shopRender();};
+ CL.save=async()=>{try{const t=await CL.fresh();if(!t)return;const w=await fetch(base+'/users/'+CL.uid+'.json?auth='+t,{method:'PUT',body:JSON.stringify({coins,own,sk:SK,ts:Date.now()})});if(!w.ok)throw new Error(w.status);}catch(x){CL.st='雲端儲存失敗：'+(x.message||x);accRender();}};
+ CL.q=()=>{clearTimeout(CL.t);CL.t=setTimeout(CL.save,3000);};
+ CL.auth=async(reg,email,pw)=>{const r=await api(reg?'signUp':'signInWithPassword',{email,password:pw,returnSecureToken:true});if(r.error){const k=(r.error.message||'').split(' ')[0];return '失敗：'+(({EMAIL_EXISTS:'此信箱已註冊',INVALID_LOGIN_CREDENTIALS:'信箱或密碼錯誤',EMAIL_NOT_FOUND:'找不到此信箱',INVALID_PASSWORD:'密碼錯誤',WEAK_PASSWORD:'密碼至少 6 個字',INVALID_EMAIL:'信箱格式不對',MISSING_PASSWORD:'請輸入密碼',OPERATION_NOT_ALLOWED:'尚未在 Firebase 開啟信箱登入'})[k]||r.error.message);}setS(r);await CL.load();LB.pull();return '';};
+ CL.reset=async e=>{const r=await api('sendOobCode',{requestType:'PASSWORD_RESET',email:e});return r.error?'失敗：'+r.error.message:'已寄出重設密碼信，請查收信箱';};
  LB.db={collection:()=>({doc:id=>({
-  get:async()=>{const r=await (await fetch(base+'/scores/'+id+'.json')).json();return{exists:!!r,data:()=>r};},
-  set:async d=>{const w=await fetch(base+'/scores/'+id+'.json',{method:'PUT',body:JSON.stringify(d)});if(!w.ok)throw new Error('寫入被拒絕 '+w.status);LB.pull();}})})};
+  get:async()=>{const t=await CL.fresh();const r=await (await fetch(base+'/scores/'+id+'.json'+(t?'?auth='+t:''))).json();return{exists:!!r&&!r.error,data:()=>r};},
+  set:async d=>{const t=await CL.fresh();const w=await fetch(base+'/scores/'+id+'.json'+(t?'?auth='+t:''),{method:'PUT',body:JSON.stringify(d)});if(!w.ok)throw new Error('寫入被拒絕 '+w.status);LB.pull();}})})};
  LB.pull();setInterval(LB.pull,30000);
+ setTimeout(()=>{if(K)document.getElementById('acc').style.display='';try{const q=JSON.parse(localStorage.getItem('fbs')||'null');if(q&&q.rt&&K){CL.uid=q.uid;CL.email=q.email;CL.rt=q.rt;LB.uid=q.uid;CL.fresh().then(t=>{if(t)CL.load();});}}catch(x){}accRender();},0);
 }
 const shp=document.getElementById('shp');
 const pr=i=>i>=4?3000:1000;
 function shopRender(){shp.innerHTML='<h2>造型商店　金幣 '+coins+'</h2>'+SKINS.map((s,i)=>'<div class="sr"><canvas class="pv" width="64" height="64" data-i="'+i+'"></canvas><span>'+s.n+'</span><span class="sw">'+s.c.map(c=>'<i style="background:'+c+'"></i>').join('')+'</span><button data-i="'+i+'">'+(SK==i?'使用中':own.includes(i)?'裝備':pr(i)+' 金幣購買')+'</button></div>').join('')+'<button id="shx">關閉</button>';const G=g,K=SK;shp.querySelectorAll('canvas.pv').forEach(c=>{g=c.getContext('2d');SK=+c.dataset.i;robot(32,38,1.2,4);});g=G;SK=K;document.getElementById('shop').textContent='造型商店（'+coins+' 金幣）';}
-shp.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.id==='shx'){shp.style.display='none';return;}const i=+b.dataset.i;if(own.includes(i))SK=i;else if(coins>=pr(i)){coins-=pr(i);own.push(i);SK=i;}else{b.textContent='金幣不足';return;}sv();shopRender();};
-document.getElementById('shop').onclick=()=>{shopRender();shp.style.display='flex';};
+shp.onclick=e=>{const b=e.target.closest('button');if(!b)return;
+if(b.id==='li'||b.id==='rg'){const e=document.getElementById('em').value.trim(),p=document.getElementById('pw').value,x=document.getElementById('ae');x.textContent='處理中…';CL.auth(b.id==='rg',e,p).then(m=>{if(m)x.textContent=m;else accRender();});return;}
+if(b.id==='fg'){const x=document.getElementById('ae');x.textContent='處理中…';CL.reset(document.getElementById('em').value.trim()).then(m=>x.textContent=m);return;}
+if(b.id==='lo'){CL.out();return;}
+if(b.id==='shx'){shp.style.display='none';return;}const i=+b.dataset.i;if(own.includes(i))SK=i;else if(coins>=pr(i)){coins-=pr(i);own.push(i);SK=i;}else{b.textContent='金幣不足';return;}sv();shopRender();};
+document.getElementById('shop').onclick=()=>{shp.dataset.m='shop';shopRender();shp.style.display='flex';};
 shopRender();
+function accRender(){const a=document.getElementById('acc');if(a)a.textContent=CL.uid?'帳號：'+CL.email.slice(0,16):'登入／註冊（雲端存檔）';if(shp.dataset.m!=='acc')return;shp.innerHTML=(CL.uid?'<h2>已登入</h2><div>'+esc(CL.email)+'</div><div style="font-size:12px;opacity:.8">'+esc(CL.st||'')+'</div><button id="lo">登出</button>':'<h2>登入／註冊</h2><input id="em" type="email" placeholder="電子信箱"><input id="pw" type="password" placeholder="密碼（至少 6 字）"><div id="ae" style="color:#ff8a8a;font-size:13px;min-height:16px"></div><button id="li">登入</button><button id="rg">註冊新帳號</button><button id="fg">忘記密碼</button>')+'<button id="shx">關閉</button>';}
+document.getElementById('acc').onclick=()=>{shp.dataset.m='acc';accRender();shp.style.display='flex';};
 document.getElementById('sk').onclick=skill;
 addEventListener('keydown',e=>{if(e.target.id==='nm')return;if(e.key===' '||e.key==='b'){e.preventDefault();skill();}});
 document.getElementById('mu').onclick=e=>{Au.on=!Au.on;e.target.textContent=Au.on?'♪':'✕';if(Au.m)Au.m.gain.value=Au.on?.5:0;};
